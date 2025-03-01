@@ -1,0 +1,45 @@
+{
+  "cSpell.words": [
+    "absmiddle",
+    "alicdn",
+    "Attributify",
+    "buyimg",
+    "demi",
+    "esno",
+    "ffflorian",
+    "floatbtn",
+    "iconify",
+    "imgextra",
+    "jload",
+    "KHTML",
+    "kolorist",
+    "lazyload",
+    "pixelarticons",
+    "sidepanel",
+    "skus",
+    "sonner",
+    "taobao",
+    "tbpc",
+    "teenyicons",
+    "Tmall",
+    "toastification",
+    "typcn",
+    "unocss",
+    "unplugin",
+    "videox",
+    "Vitesse",
+    "Vnysx",
+    "vueuse",
+    "webext",
+    "webextension"
+  ],
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "vite.autoStart": false,
+  "eslint.useFlatConfig": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "files.associations": {
+    "*.css": "postcss"
+  },
+}
