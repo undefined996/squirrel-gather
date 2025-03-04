@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import 'uno.css'
-import { useMouseInElement, onClickOutside } from '@vueuse/core'
+import { useMouseInElement } from '@vueuse/core'
 import { useDrag } from '~/composables/useDrag'
 import { useSwitchGroups } from '~/composables/useSwitchGroups'
 import { useToast } from '~/composables/useToast'
 import useDownloadController from '~/composables/useDownloadController'
+import { useClickOutside } from '~/composables/useClickOutside'
 import { Settings } from '~/types'
 
 // 下载任务提交状态
@@ -40,43 +41,44 @@ const { switchGroups } = useSwitchGroups(settings)
 const { showToastWithDelay: showToast } = useToast(defaultToastStyle)
 
 // 关闭悬浮按钮Handle
-const closeHandle = () => {
+const closeHandle = (event: MouseEvent) => {
   if (!isShowSettingsCard.value) {
     isClose.value = true
   } else {
     isShowSettingsCard.value = false
   }
+  event.stopPropagation()
 }
 
 // useMouseInElement监听鼠标是否移出元素外部
 const { isOutside } = useMouseInElement(floatingButtonRef)
 
-// const isExpand = computed(() => isShowSettingsCard.value || !isOutside.value)
+const isExpand = computed(() => isShowSettingsCard.value || !isOutside.value)
 
-// 优化展开
-const isExpand = ref(false)
+// // 优化展开
+// const isExpand = ref(false)
 
-// 监听 isShowSettingsCard 和 isOutside 的变化
-watchEffect(() => {
-  isExpand.value = isShowSettingsCard.value || !isOutside.value
-})
+// // 监听 isShowSettingsCard 和 isOutside 的变化
+// watchEffect(() => {
+//   isExpand.value = isShowSettingsCard.value || !isOutside.value
+// })
+
+// 监听设置面板外部任何区域时关闭设置面板，设置按钮本身除外
+// onClickOutside(
+//   settingsCardRef,
+//   async (event) => {
+//     if (isShowSettingsCard.value) {
+//       await settingsShowHandle(event)
+//     }
+//   },
+//   { ignore: [settingsButtonRef, closeButtonRef] }
+// )
 
 // 设置按钮点击处理函数
 const settingsShowHandle = (event: MouseEvent) => {
-  event.stopPropagation() // 阻止事件冒泡
   isShowSettingsCard.value = !isShowSettingsCard.value
+  event.stopPropagation()
 }
-
-// 监听设置面板外部任何区域时关闭设置面板，设置按钮本身除外
-onClickOutside(
-  settingsCardRef,
-  (event) => {
-    if (isShowSettingsCard.value) {
-      isShowSettingsCard.value = false
-    }
-  },
-  { ignore: [settingsButtonRef, closeButtonRef] }
-)
 
 // 可拖拽功能调用
 const { y, adaptiveStyles } = useDrag(floatingButtonRef)
@@ -91,13 +93,35 @@ const { downloadHandle } = useDownloadController(isSubmit, settings, showToast)
 //     closeButton: true
 //   })
 // })
+
+// 监听设置面板外部任何区域时关闭设置面板，设置按钮、关闭按钮除外
+// onClickOutside(
+//   settingsCardRef,
+//   async (event) => {
+//     if (isShowSettingsCard.value) {
+//       await settingsShowHandle(event)
+//     }
+//   },
+//   { ignore: [settingsButtonRef, closeButtonRef] }
+// )
+
+useClickOutside(
+  settingsCardRef,
+  [settingsButtonRef, closeButtonRef],
+  () => {
+    if (isShowSettingsCard.value) {
+      isShowSettingsCard.value = false
+    }
+  },
+  isShowSettingsCard
+)
 </script>
 
 <template>
   <div
     ref="floatingButtonRef"
     class="z-99999 max-h-[100px] fixed right-0"
-    v-show="!isClose"
+    v-if="!isClose"
     :style="{ top: `${y}px` }"
   >
     <!-- 设置弹出面板 -->
@@ -105,7 +129,7 @@ const { downloadHandle } = useDownloadController(isSubmit, settings, showToast)
       ref="settingsCardRef"
       class="bg-white box-shadow px-[24px] py-[20px] flex flex-col gap-y-4 rounded-[10px] w-max h-max max-h-[270px] absolute right-[68px]"
       :style="adaptiveStyles"
-      v-show="isShowSettingsCard"
+      :class="[isShowSettingsCard ? 'visible' : 'invisible']"
     >
       <div v-for="(item, idx) in switchGroups" :key="idx">
         <span class="block font-bold mb-2.5" text="[14px] gray-500">{{

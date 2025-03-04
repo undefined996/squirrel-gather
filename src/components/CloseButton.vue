@@ -24,7 +24,6 @@ withDefaults(defineProps<ActionButtonProps>(), {
 const emit = defineEmits(['update:closeAction'])
 
 const clickHandle = (event: MouseEvent) => {
-  event.stopPropagation()
-  emit('update:closeAction')
+  emit('update:closeAction', event)
 }
 </script>

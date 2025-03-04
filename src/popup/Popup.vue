@@ -34,7 +34,7 @@ const supportList: Item[] = [
   }
 ]
 
-const version: string = 'v1.0.0'
+const version: string = 'v1.0.1'
 </script>
 
 <template>

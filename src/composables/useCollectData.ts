@@ -73,7 +73,6 @@ export function useCollectData(
   const processData = async (settings: Settings): Promise<Result> => {
     const result: Result = { url }; // 初始化 result 并添加 url
     const n = computeLimit() // 计算并发数
-    console.log("计算并发数为:", n)
     const limit = pLimit(n); // 设置最大并发数
 
     // 处理标题
