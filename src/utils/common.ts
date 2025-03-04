@@ -1,7 +1,7 @@
 import { NotificationOptions } from '~/types';
 
 // 延迟异步函数
-export function delay(ms: number): Promise<void> {
+export const delay = (ms: number): Promise<void> => {
   return new Promise<void>((resolve) => setTimeout(resolve, ms));
 }
 
@@ -38,4 +38,29 @@ export const removeDashAndAfter = (str: string, dash: string = '-') => {
   }
   // 如果没有 "-"，返回原字符串
   return str
+}
+
+
+// URL补全URL协议头
+export const completeUrlProtocol = (url: string): string => {
+  return url.startsWith('//') ? `${window.location.protocol}${url}` : url
+}
+
+
+// 文本信息去除“/”，如果存在会影响文件保存：如果存在会当成文件夹处理
+export const normalizeText = (text: string, reg: RegExp = /\//g): string => {
+  return text.replace(reg, '_').trim()
+}
+
+
+// 判断元素是否在视口中
+// 检查元素是否在视口中
+export const isInViewport = (element: any) => {
+  const rect = element.getBoundingClientRect();
+  return (
+    rect.top >= 0 &&
+    rect.left >= 0 &&
+    rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+    rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+  );
 }

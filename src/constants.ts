@@ -13,10 +13,12 @@ export enum Hostname {
 
 // 消息提示
 export enum NotificationMessage {
-  PARSING = '开始解析页面数据',
-  COMMITTING = '解析成功已通知后台处理',
+  STARTING = '开始解析页面数据',
+  SUBMITTING = '解析成功已提交后台处理',
   PACKAGING = '资源提取成功正打包压缩',
-  DOWNLOADING = '下载成功请默认下载目录查验',
-  ERROR = '资源下载失败请重试'
+  DOWNLOAD_COMPLETED = '下载成功请默认下载目录查验',
+  ERROR = '任务执行失败请重试',
+  BACKGROUND_ERROR = '处理器出现异常请重试',
+  CONTROLLER_ERROR = '控制器出现异常请重试'
 }
 

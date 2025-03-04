@@ -20,7 +20,7 @@ const supportList: Item[] = [
   {
     id: '4',
     name: '京东商城',
-    status: false
+    status: true
   },
   {
     id: '5',
@@ -34,7 +34,7 @@ const supportList: Item[] = [
   }
 ]
 
-const version: string = 'v0.0.4'
+const version: string = 'v1.0.0'
 </script>
 
 <template>

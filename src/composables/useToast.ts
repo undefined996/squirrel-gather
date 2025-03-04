@@ -28,8 +28,6 @@ export function useToast(style: string) {
       closeButton,
     };
 
-    console.log('current toastConfig=====>', toastConfig)
-
     // 根据类型调用对应的 toast 方法
     const toastMethods = {
       info: toast.info,
@@ -41,7 +39,20 @@ export function useToast(style: string) {
     toastMethods[type](notificationMessageValue, toastConfig);
   };
 
+  // Toast随机延迟
+  const generateRadomDelay = (min = 1500, max = 3500) => {
+    return Math.ceil((Math.random() * (max - min + 1)) + min)
+  }
+
+  const showToastWithDelay = async (message: NotificationMessage, type?: ToastType, options?: ToastOptions) => {
+    return new Promise<void>((resolve) => {
+      showToast(message, type, options);
+      setTimeout(() => resolve(), generateRadomDelay()); // 等待 Toast 消失
+    });
+  };
+
   return {
     showToast,
+    showToastWithDelay
   };
 }

@@ -1,8 +1,9 @@
-import { removeDashAndAfter } from '~/utils/common';
-import { Sku, Result, Settings } from '../types'
+import { completeUrlProtocol, normalizeText, removeDashAndAfter } from '~/utils/common';
+import { Sku, PlatformHandler, SettingsHandler, TaskType } from '../types'
+import { useCollectData } from './useCollectData';
 
 // 1688视图筛选器统一配置
-const ALI_SELECTORS = {
+export const ALI_SELECTORS = {
   titleContent: '.title-content',
   headTitleContent: 'head title',
   skuFilterButton: '.sku-filter-button.v-flex',
@@ -15,9 +16,10 @@ const ALI_SELECTORS = {
 };
 
 
-export function useCollectAliData(url: string) {
+const aliHandlers: PlatformHandler = {
+
   // 获取1688标题
-  const handleTitle = (): string => {
+  handleTitle: async (): Promise<string> => {
     // const element = document.querySelector(ALI_SELECTORS.titleContent)
     // if (element) {
     //   const h1 = element.querySelector('h1')
@@ -35,16 +37,14 @@ export function useCollectAliData(url: string) {
     }
 
     // 获取 head 标题内容并处理
-    const processedTitle = removeDashAndAfter(headTitleTextContent, '-') // 去掉 "-" 及后面的部分
-      .replace(/\//g, '_') // 替换所有斜杠为下划线
-      .trim(); // 去掉前后空格
+    const processedTitle = normalizeText(removeDashAndAfter(headTitleTextContent, '-'))
 
     return processedTitle || '';
-  }
+  },
 
 
   // 获取1688 sku信息
-  const handleSkus = (): Sku[] => {
+  handleSkus: async (): Promise<Sku[]> => {
     const rst: Sku[] = []
 
     const processElements = (elements: NodeListOf<Element>, getImageUrl: boolean) => {
@@ -57,8 +57,9 @@ export function useCollectAliData(url: string) {
           url: imgEle ? imgEle.getAttribute('src') || null : null,
         };
 
+
         if (skuInfo.label && skuInfo.url) {
-          skuInfo.url = skuInfo.url.startsWith('//') ? window.location.protocol + skuInfo.url : skuInfo.url;
+          skuInfo.url = completeUrlProtocol(skuInfo.url);
           rst.push(skuInfo);
         }
       });
@@ -77,22 +78,25 @@ export function useCollectAliData(url: string) {
     }
 
     return rst
-  }
+  },
+
+
 
   // 获取1688主图视频
-  const handleMainVideo = (): string => {
+  handleMainVideo: async (): Promise<string> => {
     const videoElement = document.querySelector<HTMLVideoElement>(ALI_SELECTORS.mainVideo);
     if (videoElement) {
       const url = videoElement.getAttribute('src');
       if (url) {
-        return url.startsWith('//') ? `${window.location.protocol}${url}` : url;
+        return completeUrlProtocol(url);
       }
     }
     return '';
-  };
+  },
+
 
   // 获取1688主图
-  const handleMainImages = (): string[] => {
+  handleMainImages: async (): Promise<string[]> => {
     const rst: string[] = [];
     const elements = document.querySelectorAll<HTMLImageElement>(ALI_SELECTORS.mainImage);
 
@@ -100,27 +104,30 @@ export function useCollectAliData(url: string) {
       const url = element.getAttribute('src');
       if (url) {
         const processedUrl = url.endsWith('.jpg_b.jpg') ? url.replace(/\.jpg_b\.jpg$/, '.jpg_.webp') : url;
-        rst.push(processedUrl.startsWith('//') ? `${window.location.protocol}${processedUrl}` : processedUrl);
+        rst.push(completeUrlProtocol(processedUrl));
       }
     });
 
     return rst;
-  };
+  },
+
 
   // 获取1688详情页视频
-  const handleDetailVideo = (): string => {
+  handleDetailVideo: async (): Promise<string> => {
     const videoElement = document.querySelector<HTMLVideoElement>(ALI_SELECTORS.detailVideo);
     if (videoElement) {
       const url = videoElement.getAttribute('src');
       if (url) {
-        return url.startsWith('//') ? `${window.location.protocol}${url}` : url;
+        return completeUrlProtocol(url);
       }
     }
     return '';
-  };
+  },
+
+
 
   // 获取1688详情图片
-  const handleDetailImages = (): string[] => {
+  handleDetailImages: async (): Promise<string[]> => {
     const rst: string[] = [];
     const htmlDescriptionElement = document.querySelector(ALI_SELECTORS.htmlDescription);
 
@@ -141,62 +148,18 @@ export function useCollectAliData(url: string) {
     });
 
     return rst;
-  };
-
-
-  // 数据汇总
-  const processAliData = (settings: Settings): Result => {
-    const result: Result = {}
-
-    const title = handleTitle()
-    if (title) {
-      result['title'] = title
-    }
-
-    if (settings.isSkus.value) {
-      const skus = handleSkus()
-      if (skus) {
-        result['skus'] = skus
-      }
-    }
-
-    if (settings.isMainVideo.value) {
-      const mainVideoUrl = handleMainVideo()
-      if (mainVideoUrl) {
-        result['mainVideoUrl'] = mainVideoUrl
-      }
-    }
-
-    if (settings.isMainImages.value) {
-      const mainImages = handleMainImages()
-      if (mainImages) {
-        result['mainImages'] = mainImages
-      }
-    }
-    if (settings.isDetailImages.value) {
-      const detailImages = handleDetailImages()
-      if (detailImages) {
-        result['detailImages'] = detailImages
-      }
-    }
-    if (settings.isDetailVideo.value) {
-      const detailVideoUrl = handleDetailVideo()
-      if (detailVideoUrl) {
-        result['detailVideoUrl'] = detailVideoUrl
-      }
-    }
-
-    if (settings.isReadMe.value) {
-      result['isReadMe'] = true
-    }
-
-    result['url'] = url
-
-    return result
   }
+}
+
+// 定义阿里的settingsHandlers
+const aliSettingsHandlers: SettingsHandler<any>[] = [
+  { key: 'isSkus', handler: aliHandlers.handleSkus, resultKey: 'skus', defaultValue: [], taskType: TaskType.CONCURRENT },
+  { key: 'isMainVideo', handler: aliHandlers.handleMainVideo, resultKey: 'mainVideoUrl', defaultValue: '', taskType: TaskType.CONCURRENT },
+  { key: 'isMainImages', handler: aliHandlers.handleMainImages, resultKey: 'mainImages', defaultValue: [], taskType: TaskType.CONCURRENT },
+  { key: 'isDetailImages', handler: aliHandlers.handleDetailImages, resultKey: 'detailImages', defaultValue: [], taskType: TaskType.CONCURRENT },
+];
 
 
-  return {
-    processAliData
-  }
+export function useCollectAliData(url: string) {
+  return useCollectData(aliHandlers, aliSettingsHandlers, url);
 }

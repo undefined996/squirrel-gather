@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import 'uno.css'
 import { useMouseInElement, onClickOutside } from '@vueuse/core'
-import { onMessage } from 'webext-bridge/content-script'
-import { NotificationMessage } from '~/constants'
 import { useDrag } from '~/composables/useDrag'
 import { useSwitchGroups } from '~/composables/useSwitchGroups'
 import { useToast } from '~/composables/useToast'
-import { useDownload } from '~/composables/useDownload'
+import useDownloadController from '~/composables/useDownloadController'
 import { Settings } from '~/types'
 
 // 下载任务提交状态
@@ -39,7 +37,7 @@ const defaultToastStyle = 'min-h-[36px] min-width-[60px] px-[24px] py-[18px]'
 // 设置面板具体的配置项
 const { switchGroups } = useSwitchGroups(settings)
 // toast hook
-const { showToast } = useToast(defaultToastStyle)
+const { showToastWithDelay: showToast } = useToast(defaultToastStyle)
 
 // 关闭悬浮按钮Handle
 const closeHandle = () => {
@@ -66,12 +64,7 @@ watchEffect(() => {
 // 设置按钮点击处理函数
 const settingsShowHandle = (event: MouseEvent) => {
   event.stopPropagation() // 阻止事件冒泡
-  console.log('isShowSettingsCard.value=======>', isShowSettingsCard.value)
   isShowSettingsCard.value = !isShowSettingsCard.value
-  console.log(
-    'after change isShowSettingsCard.value=======>',
-    isShowSettingsCard.value
-  )
 }
 
 // 监听设置面板外部任何区域时关闭设置面板，设置按钮本身除外
@@ -88,45 +81,16 @@ onClickOutside(
 // 可拖拽功能调用
 const { y, adaptiveStyles } = useDrag(floatingButtonRef)
 
-// 监听从后端传递的异常消息并触发
-onMessage('downloadResourcesFailed', ({ data }) => {
-  showToast(NotificationMessage.ERROR, 'error', {
-    duration: 15000,
-    closeButton: true
-  })
-})
-
 // 提交下载任务等待background反馈结果并触发Toast
-const { downloadHandle } = useDownload(isSubmit, settings, showToast)
+const { downloadHandle } = useDownloadController(isSubmit, settings, showToast)
 
-// // 监听 settings 的每个属性
-// const watchSettings = (settings: Settings) => {
-//   watch(settings.isReadMe, (newValue) => {
-//     console.log('isReadMe 变化:', newValue)
+// 监听从后端传递的异常消息并触发Toast
+// onMessage('downloadResourcesFailed', ({}) => {
+//   showToast(NotificationMessage.ERROR, 'error', {
+//     duration: 15000,
+//     closeButton: true
 //   })
-
-//   watch(settings.isMainVideo, (newValue) => {
-//     console.log('isMainVideo 变化:', newValue)
-//   })
-
-//   watch(settings.isMainImages, (newValue) => {
-//     console.log('isMainImages 变化:', newValue)
-//   })
-
-//   watch(settings.isSkus, (newValue) => {
-//     console.log('isSkus 变化:', newValue)
-//   })
-
-//   watch(settings.isDetailImages, (newValue) => {
-//     console.log('isDetailImages 变化:', newValue)
-//   })
-
-//   watch(settings.isDetailVideo, (newValue) => {
-//     console.log('isDetailVideo 变化:', newValue)
-//   })
-// }
-
-// watchSettings(settings)
+// })
 </script>
 
 <template>
