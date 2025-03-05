@@ -6,7 +6,7 @@
 
     <input type="checkbox" class="hidden" v-model="isChecked" />
     <label
-      class="w-[36px] h-[20px] rounded-full relative"
+      class="w-[36px] h-[20px] rounded-full relative cursor-pointer"
       :class="[isChecked ? checkedColor : bgColor]"
       @click="isChecked = !isChecked"
     >

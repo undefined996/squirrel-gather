@@ -5,7 +5,7 @@ import { useDrag } from '~/composables/useDrag'
 import { useSwitchGroups } from '~/composables/useSwitchGroups'
 import { useToast } from '~/composables/useToast'
 import useDownloadController from '~/composables/useDownloadController'
-import { useClickOutside } from '~/composables/useClickOutside'
+import { useStaticClickOutside as useClickOutside } from '~/composables/useClickOutside'
 import { Settings } from '~/types'
 
 // 下载任务提交状态
@@ -52,7 +52,7 @@ const closeHandle = (event: MouseEvent) => {
 
 // useMouseInElement监听鼠标是否移出元素外部
 const { isOutside } = useMouseInElement(floatingButtonRef)
-
+// 是否展开
 const isExpand = computed(() => isShowSettingsCard.value || !isOutside.value)
 
 // // 优化展开
@@ -107,13 +107,13 @@ const { downloadHandle } = useDownloadController(isSubmit, settings, showToast)
 
 useClickOutside(
   settingsCardRef,
-  [settingsButtonRef, closeButtonRef],
   () => {
     if (isShowSettingsCard.value) {
       isShowSettingsCard.value = false
     }
   },
-  isShowSettingsCard
+  isShowSettingsCard,
+  [settingsButtonRef, closeButtonRef]
 )
 </script>
 

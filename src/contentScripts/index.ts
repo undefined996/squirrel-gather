@@ -13,6 +13,7 @@ import { Toaster } from 'vue-sonner';
   container.id = __NAME__
   const root = document.createElement('div')
   const styleEl = document.createElement('link')
+  // 特别需要注意此处
   const shadowDOM = container.attachShadow?.({ mode: __DEV__ ? 'open' : 'closed' }) || container
   styleEl.setAttribute('rel', 'stylesheet')
   styleEl.setAttribute('href', browser.runtime.getURL('dist/contentScripts/style.css'))
