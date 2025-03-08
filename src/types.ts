@@ -91,7 +91,7 @@ export interface ToastOptions {
 }
 
 
-// 页面内容解析handle统一接口
+// 页面内容解析handle统一接口(解析器统一接口)
 export interface PlatformHandler {
   handleTitle: () => Promise<string>;
   handleSkus: () => Promise<Sku[]>;

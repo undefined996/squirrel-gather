@@ -72,7 +72,7 @@ export const useStaticClickOutside = (target: Ref<HTMLElement>,
 export const useDynamicClickOutside = (target: Ref<HTMLElement>,
   handler: () => void,
   status: Ref<boolean>,
-  ignore: Ref<HTMLElement>[] | undefined = []) => {
+  ignore: Ref<HTMLElement>[] = []) => {
 
 
 
@@ -112,14 +112,20 @@ export const useDynamicClickOutside = (target: Ref<HTMLElement>,
   // 点击事件处理函数
   const onClick = (event: MouseEvent) => {
     // 如果点击的目标是 target 自身，直接返回
-    // 生产环境shadow root 默认配置是close，只能通过elementFromPoint点位获取具体的点击位置
-    const shadowRoot = target.value?.getRootNode() as ShadowRoot | null
-    let clickedElement = event.target as Node
+    // 1. 获取 target 元素所在的根节点（可能是 shadowRoot 或 document）
+    const shadowRoot = target.value?.getRootNode() as ShadowRoot | null;
+
+    // 2. 先将点击的元素存入 clickedElement
+    let clickedElement = event.target as Node;
+
+    // 3. 如果 `shadowRoot` 存在并且支持 `elementFromPoint` 方法，则用它来获取点击位置的元素
     if (shadowRoot?.elementFromPoint) {
-      clickedElement = shadowRoot.elementFromPoint(event.clientX, event.clientY) || clickedElement
+      clickedElement = shadowRoot.elementFromPoint(event.clientX, event.clientY) || clickedElement;
     }
+
+    // 4. 如果点击的元素是 `target` 本身，则直接返回（即不触发 `click outside` 逻辑）
     if (target.value?.contains(clickedElement)) {
-      return
+      return;
     }
 
     // 如果鼠标在 target 外部
