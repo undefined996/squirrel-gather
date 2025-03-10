@@ -33,7 +33,6 @@ const useDownloadService = () => {
 
       const taskCount = allTasks.length;
       const limit = pLimit(Math.min(Math.max(taskCount, 1), 5));
-      console.log('current limit n =======>', Math.min(Math.max(taskCount, 1), 5))
 
       try {
         if (data.isReadMe) {
