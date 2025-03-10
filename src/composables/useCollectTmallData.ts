@@ -17,6 +17,88 @@ export const TMALL_SELECTORS = {
 };
 
 
+const processRst = (rst: string[]): string[] => {
+  // 检查最后一个元素是否包含指定的无效 URL
+  const lastItem = rst[rst.length - 1];
+  const isLastItemInvalid = lastItem?.includes('6000000001963-2-tps-790-300.png') ||
+    lastItem?.includes('6000000008132-2-tps-750-880.png');
+
+  // 如果最后一个元素无效，则剔除最后一项；否则直接返回 rst
+  return isLastItemInvalid ? rst.slice(0, -1) : rst;
+};
+
+
+// 适配接口，以闭包的形式让handle支持传参
+const createHandleDetailImages = () => {
+  let retryCount = 1; // 闭包内的递归计数器
+  const maxRetries = 3; // 最大重试次数
+
+
+  const handleDetailImages: PlatformHandler['handleDetailImages'] = async (): Promise<string[]> => {
+    console.log(`---->当前是第${retryCount}次递归<----`)
+    const rst: string[] = [];
+    const detailImageFilter1 = '.descV8-richtext img[align="absmiddle"].lazyload,.descV8-richtext img[align="absmiddle"]:not(.lazyload)';
+    const detailImageFilter2 = '.descV8-singleImage img[data-name="singleImage"].descV8-singleImage-image.lazyload';
+
+    // 获取图片元素
+    const getImageElements = () => {
+      const filter1 = Array.from(document.querySelectorAll(detailImageFilter1));
+      const filter2 = Array.from(document.querySelectorAll(detailImageFilter2));
+      return [...filter1, ...filter2];
+    };
+
+    // 滚动到最后一个图片元素
+    const scrollToLastImage = (elements: Element[]) => {
+      if (elements.length > 0) {
+        elements[elements.length - 1].scrollIntoView({ behavior: 'smooth' });
+      }
+    };
+
+    // 提取图片 URL
+    const extractImageUrls = (elements: Element[]) => {
+      for (let i = 0; i < elements.length; i++) {
+        const ele = elements[i];
+        const src = ele.getAttribute('src');
+        const dataSrc = ele.getAttribute('data-src');
+        const url = src !== '//g.alicdn.com/s.gif' ? src : dataSrc;
+
+        if (url) {
+          rst.push(url.startsWith('//') ? window.location.protocol + url : url);
+        }
+      }
+    };
+
+    // 检查是否有未成功获取的 URL
+    const checkForInvalidUrls = () => {
+      return rst.slice(0, -1).some((item) => item.includes('6000000001963-2-tps-790-300.png') || item.includes('6000000008132-2-tps-750-880.png'));
+    };
+
+    // 主逻辑
+    let elements = getImageElements();
+    if (elements.length > 0) {
+      scrollToLastImage(elements);
+      await delay(1000); // 等待 1 秒，确保页面加载完成
+      elements = getImageElements();
+      extractImageUrls(elements);
+    }
+
+    const check = checkForInvalidUrls();
+    if (check && retryCount < maxRetries) {
+      retryCount++; // 递增递归计数器
+      await delay(1000); // 等待 1 秒，确保页面加载完成
+      return handleDetailImages(); // 递归调用
+    }
+
+    // 重置计数器（可选）
+    retryCount = 0;
+    return processRst(rst);
+  };
+
+  return handleDetailImages;
+
+}
+
+
 
 const tmallHandlers: PlatformHandler = {
   // 获取标题信息
@@ -29,16 +111,14 @@ const tmallHandlers: PlatformHandler = {
     //   return (h1Element?.textContent?.trim() || '').replace(/\//, '_')
     // }
 
-    const headTitleElement = document.querySelector(TMALL_SELECTORS.headTitleContent);
-    const headTitleTextContent = headTitleElement?.textContent;
-    if (!headTitleElement || !headTitleTextContent) {
-      return ''; // 如果没有找到 head 标题元素或标题内容为空，直接返回空字符串
-    }
+    // const headTitleElement = document.querySelector(TMALL_SELECTORS.headTitleContent);
+    // const headTitleTextContent = headTitleElement?.textContent;
+    // if (!headTitleElement || !headTitleTextContent) {
+    //   return ''; // 如果没有找到 head 标题元素或标题内容为空，直接返回空字符串
+    // }
 
     // 获取 head 标题内容并处理
-    const processedTitle = normalizeText(removeDashAndAfter(headTitleTextContent, '-'))
-
-    return processedTitle || '';
+    return normalizeText(removeDashAndAfter(document.title || '', '-'));
   },
 
   // 获取sku名称及图片信息
@@ -142,7 +222,7 @@ const tmallHandlers: PlatformHandler = {
           }
         });
 
-        observer.observe(document.body, {
+        observer.observe(document.querySelector('[class*="main"] .pageContentWrap') || document.body, {
           childList: true,
           subtree: true,
         });
@@ -155,6 +235,7 @@ const tmallHandlers: PlatformHandler = {
         }
       });
 
+
       // 设置超时
       const timeoutPromise = new Promise<string>((resolve) => {
         setTimeout(() => {
@@ -164,6 +245,7 @@ const tmallHandlers: PlatformHandler = {
           resolve('');
         }, TIMEOUT_DURATION);
       });
+
 
       // 使用 Promise.race 来竞争超时和视频地址获取
       return await Promise.race([videoSrcPromise, timeoutPromise]);
@@ -176,72 +258,7 @@ const tmallHandlers: PlatformHandler = {
 
 
   // 获取详情页图片（优化后）
-  handleDetailImages: async (): Promise<string[]> => {
-    const maxRetries = 3; // 最大重试次数
-    const retryCount = 0; // 当前重试次数
-    const rst: string[] = [];
-    const detailImageFilter1 = '.descV8-richtext img[align="absmiddle"].lazyload,.descV8-richtext img[align="absmiddle"]:not(.lazyload)';
-    const detailImageFilter2 = '.descV8-singleImage img[data-name="singleImage"].descV8-singleImage-image.lazyload';
-
-
-    // 获取图片元素
-    const getImageElements = () => {
-      const filter1 = Array.from(document.querySelectorAll(detailImageFilter1));
-      const filter2 = Array.from(document.querySelectorAll(detailImageFilter2));
-      return [...filter1, ...filter2];
-    };
-
-    // 滚动到最后一个图片元素
-    const scrollToLastImage = (elements: string | any[] | NodeListOf<Element>) => {
-      if (elements.length > 0) {
-        elements[elements.length - 1].scrollIntoView({ behavior: 'smooth' });
-      }
-    };
-
-    // 提取图片 URL
-    const extractImageUrls = (elements: string | any[] | NodeListOf<Element>) => {
-      for (let i = 0; i < elements.length - 1; i++) {
-        const ele = elements[i]
-        const src = ele.getAttribute('src');
-        const dataSrc = ele.getAttribute('data-src');
-        const url = src !== '//g.alicdn.com/s.gif' ? src : dataSrc;
-
-        if (url) {
-          rst.push(url.startsWith('//') ? window.location.protocol + url : url);
-        }
-      }
-    };
-
-    // 检查是否有未成功获取的 URL
-    const checkForInvalidUrls = () => {
-      // 6000000001963-2-tps-790-300.png filter1的懒加载图片
-      // 6000000008132-2-tps-750-880.png filter2的懒加载图片
-      return rst.some((item) => item.includes('6000000001963-2-tps-790-300.png') || item.includes('6000000008132-2-tps-750-880.png'));
-    };
-
-    // 主逻辑
-    let elements = getImageElements();
-    if (elements.length > 0) {
-      scrollToLastImage(elements);
-      await delay(1000); // 等待 1 秒，确保页面加载完成
-      elements = getImageElements();
-      extractImageUrls(elements);
-    }
-
-    const check = checkForInvalidUrls();
-    if (check && retryCount < maxRetries) {
-      // 如果存在未成功获取的 URL，并且未达到最大递归次数，则递归调用
-      await delay(1000); // 等待 1 秒，确保页面加载完成
-      return tmallHandlers.handleDetailImages();
-    }
-
-    // window.scrollTo({
-    //   top: 0,
-    //   behavior: 'smooth'
-    // });
-
-    return rst;
-  }
+  handleDetailImages: createHandleDetailImages()
 }
 
 // 定义京东的settingsHandlers

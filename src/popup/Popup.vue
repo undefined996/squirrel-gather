@@ -24,7 +24,7 @@ const supportList: Item[] = [
   },
   {
     id: '5',
-    name: '阿里国际',
+    name: '1688跨境',
     status: false
   },
   {
@@ -34,7 +34,7 @@ const supportList: Item[] = [
   }
 ]
 
-const version: string = 'v1.0.1'
+const version: string = 'v1.0.2'
 </script>
 
 <template>

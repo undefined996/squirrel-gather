@@ -36,8 +36,10 @@ export function useCollectData(
     // 执行任务
     try {
       // 按顺序执行顺序任务
-      for (const task of sequentialTasks) {
-        await task();
+      if (sequentialTasks.length > 0) {
+        for (const task of sequentialTasks) {
+          await task();
+        }
       }
 
       // 并发执行并发任务
@@ -51,23 +53,11 @@ export function useCollectData(
 
   // 计算出最合适的并发数，充分发挥系统性能
   const computeLimit = (min = 1, max = 5): number => {
-    let concurrentCount = 0;
-    let hasSequentialTask = false;
-
-    if (settingsHandlers.length <= 0) return min; // 兜底最小值为 1
-
-    settingsHandlers.forEach(handler => {
-      if (handler.taskType === TaskType.CONCURRENT) {
-        concurrentCount++;
-      } else if (handler.taskType === TaskType.SEQUENTIAL) {
-        hasSequentialTask = true; // 标记是否存在顺序任务
-      }
-    });
-
-    // 兜底最小值为 1，避免返回 0
-    const limit = concurrentCount + (hasSequentialTask ? 1 : 0);
-    return Math.min(Math.max(limit, min), max);
+    const concurrentCount = settingsHandlers.filter(h => h.taskType === TaskType.CONCURRENT).length;
+    const hasSequentialTask = settingsHandlers.some(h => h.taskType === TaskType.SEQUENTIAL);
+    return Math.min(Math.max(concurrentCount + (hasSequentialTask ? 1 : 0), min), max);
   };
+
 
   // 数据汇总
   const processData = async (settings: Settings): Promise<Result> => {
