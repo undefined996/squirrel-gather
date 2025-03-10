@@ -9,13 +9,31 @@ const removeAvifSuffix = (imgSrc: string): string => {
 }
 
 
+// 主图url格式化
+const formatMainImageUrl = (url: string, rightArg: string = '/s800x800_jfs/'): string => {
+  if (url.includes('_jfs')) {
+    return url.replace(/\/s\d+x\d+_jfs\//, rightArg)
+  }
+
+  return url.replace(/\/jfs\//, rightArg)
+}
+
+
 
 const jdHandlers: PlatformHandler = {
   // 获取标题信息(统一转换为异步)
-  handleTitle: async (): Promise<string> => {
-    const parentElement = document.querySelector('.sku-name-title');
-    return normalizeText(parentElement?.textContent || '')
-  },
+  handleTitle: // 获取标题信息(统一转换为异步)
+    async function handleTitle(): Promise<string> {
+      // 查询 .sku-name-title 和 .sku-name
+      const titleElement1 = document.querySelector('.sku-name-title') as HTMLElement | null;
+      const titleElement2 = document.querySelector('.sku-name') as HTMLElement | null;
+
+      // 如果 .sku-name-title 存在，返回它的文本内容；如果不存在，返回 .sku-name 的文本内容
+      const title = titleElement1 ? normalizeText(titleElement1.textContent || '') :
+        (titleElement2 ? normalizeText(titleElement2.textContent || '') : '');
+
+      return title;
+    },
 
 
   // 获取sku名称及图片信息(统一转换为异步)
@@ -30,7 +48,7 @@ const jdHandlers: PlatformHandler = {
         const label = element?.textContent?.trim() || element.querySelector("i")?.textContent?.trim()
         // TODO:可能存在有标签没有图片的情况
         if (label) {
-          const rightSizeImgSrc = imgSrc ? imgSrc.replace(/\/s28x28_jfs\//, '/s800x800_jfs/').replace('img14.360buyimg.com', 'img10.360buyimg.com') : ''
+          const rightSizeImgSrc = imgSrc ? imgSrc.replace(/\/s\d+x\d+_jfs\//, '/s800x800_jfs/') : ''
           rst.push({
             label: normalizeText(label),
             url: completeUrlProtocol(removeAvifSuffix(rightSizeImgSrc)),
@@ -52,7 +70,7 @@ const jdHandlers: PlatformHandler = {
       .filter((url): url is string => url !== null)
       .map((url) => {
 
-        const replaceImgSrc = url.replace(/\/s114x114_jfs\//, '/s800x800_jfs/')
+        const replaceImgSrc = formatMainImageUrl(url)
         const imgSrc = removeAvifSuffix(replaceImgSrc)
         return completeUrlProtocol(imgSrc)
       })
@@ -181,8 +199,11 @@ const jdHandlers: PlatformHandler = {
       const elements = document.querySelectorAll('#J-detail-content img');
       elements.forEach(element => {
         const imageSrc = element.getAttribute('src');
+        const lazyImageSrc = element.getAttribute('data-lazyload');
+
         if (imageSrc) {
-          result.push(completeUrlProtocol(removeAvifSuffix(imageSrc)));
+          const imageUrl = imageSrc.endsWith('.gif') ? (lazyImageSrc ? lazyImageSrc : '') : imageSrc
+          result.push(completeUrlProtocol(removeAvifSuffix(imageUrl)));
         }
       });
       return result;
