@@ -60,9 +60,9 @@ pnpm build
 
 - Open your browser and go to the extensions page:
 
-Chrome: chrome://extensions/
+  - Chrome: chrome://extensions/
 
-Edge: edge://extensions/
+  - Edge: edge://extensions/
 
 - Enable Developer Mode.
 
