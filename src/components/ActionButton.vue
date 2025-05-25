@@ -8,7 +8,7 @@
 
 <script lang="ts" setup>
 import { useMouseInElement } from '@vueuse/core'
-import { ActionButtonProps } from '~/types'
+import { ActionButtonProps } from '~/types/schemas'
 
 const props = withDefaults(defineProps<ActionButtonProps>(), {
   label: '',

@@ -31,7 +31,8 @@
     "Vnysx",
     "vueuse",
     "webext",
-    "webextension"
+    "webextension",
+    "weui"
   ],
   "typescript.tsdk": "node_modules/typescript/lib",
   "vite.autoStart": false,

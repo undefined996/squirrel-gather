@@ -1,4 +1,8 @@
-import { NotificationOptions } from '~/types';
+import { ALI_SELECTORS } from '~/composables/useCollectAliData';
+import { JD_SELECTORS } from '~/composables/useCollectJDData';
+import { TMALL_SELECTORS } from '~/composables/useCollectTmallData';
+import { Hostname } from '~/constants';
+import { NotificationOptions, Settings, PlainSettings } from '~/types/schemas';
 
 // 延迟异步函数
 export const delay = (ms: number): Promise<void> => {
@@ -63,4 +67,27 @@ export const isInViewport = (element: any) => {
     rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
     rect.right <= (window.innerWidth || document.documentElement.clientWidth)
   );
+}
+
+// ref格式的settings转换为纯js
+export const plainSettings = (settings: Settings): PlainSettings => {
+  return Object.fromEntries(
+    Object.entries(settings).map(([key, val]) => [key, val.value])) as PlainSettings
+}
+
+
+export const generateObserverTargetNodeRule = (url: string): string => {
+  let rule = ''
+  const uri = new URL(url)
+  const hostname = uri.hostname
+
+  if (Hostname.ALI === hostname) {
+    rule = ALI_SELECTORS.mainImage
+  } else if (Hostname.TMALL === hostname || Hostname.TAOBAO === hostname) {
+    rule = TMALL_SELECTORS.skuFilter
+  } else if (Hostname.JD === hostname) {
+    rule = JD_SELECTORS.skuFilter
+  }
+
+  return rule
 }

@@ -1,5 +1,11 @@
 <script setup lang="ts">
-import { Item } from '~/types'
+import { useWebExtensionStorage } from '~/composables/useWebExtensionStorage'
+import { Item, ModeType } from '~/types/schemas'
+
+const extractionMode = useWebExtensionStorage<ModeType>(
+  'extraction-mode',
+  'hidden'
+)
 
 const supportList: Item[] = [
   {
@@ -34,12 +40,51 @@ const supportList: Item[] = [
   }
 ]
 
-const version: string = 'v1.0.2'
+const version: string = 'v1.1.0'
 </script>
 
 <template>
   <main>
     <div class="bg-white box-shadow px-[24px] py-[20px] w-max">
+      <!-- ✅ 新增提取模式切换区域 -->
+      <div class="mb-4">
+        <span class="block font-bold mb-2.5" text="[14px] gray-500"
+          >模式选择</span
+        >
+        <div class="flex gap-x-4">
+          <label
+            class="cursor-pointer flex items-center gap-x-1"
+            :class="{
+              'text-brand font-600': extractionMode === 'visible',
+              'text-gray-300': extractionMode !== 'visible'
+            }"
+          >
+            <input
+              type="radio"
+              value="visible"
+              v-model="extractionMode"
+              class="w-4 h-4 rounded-full border border-gray-400 checked:border-4 checked:border-brand checked:bg-white appearance-none cursor-pointer"
+            />
+            常规模式
+          </label>
+          <label
+            class="cursor-pointer flex items-center gap-x-1"
+            :class="{
+              'text-brand font-600': extractionMode === 'hidden',
+              'text-gray-300': extractionMode !== 'hidden'
+            }"
+          >
+            <input
+              type="radio"
+              value="hidden"
+              v-model="extractionMode"
+              class="w-4 h-4 rounded-full border border-gray-400 checked:border-4 checked:border-brand checked:bg-white appearance-none cursor-pointer"
+            />
+            无痕模式
+          </label>
+        </div>
+      </div>
+
       <span class="block font-bold mb-2.5" text="[14px] gray-500"
         >支持列表展示</span
       >

@@ -46,6 +46,7 @@ export async function getManifest() {
       'activeTab',
       'notifications',
       'downloads',
+      'scripting',
       // 'sidePanel',
     ],
     host_permissions: ['*://*/*'],
@@ -63,6 +64,7 @@ export async function getManifest() {
         ],
         js: [
           'dist/contentScripts/index.global.js',
+          'dist/contentScripts/agent.global.js',
         ],
         css: [
           'dist/contentScripts/style.css'

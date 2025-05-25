@@ -13,7 +13,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ActionButtonProps } from '~/types'
+import { ActionButtonProps } from '~/types/schemas'
 
 withDefaults(defineProps<ActionButtonProps>(), {
   label: '',

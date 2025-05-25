@@ -1,4 +1,4 @@
-import { Sku, PlatformHandler, SettingsHandler, TaskType } from '../types'
+import { Sku, PlatformHandler, SettingsHandler, TaskType } from '../types/schemas'
 import { completeUrlProtocol, delay, normalizeText, removeDashAndAfter } from '../utils/common'
 import { useCollectData } from './useCollectData';
 
@@ -100,7 +100,7 @@ const createHandleDetailImages = () => {
 
 
 
-const tmallHandlers: PlatformHandler = {
+export const tmallHandlers: PlatformHandler = {
   // 获取标题信息
   // 天猫标题scroll后会消失，改为从head.title中获取标题，head标题需要解析处理
   handleTitle: async (): Promise<string> => {
@@ -136,6 +136,13 @@ const tmallHandlers: PlatformHandler = {
       }
     };
 
+    const removeThumbnailSuffix = (url: string) => {
+      if (url.includes('_90x90q30.jpg_.webp')) {
+        return url.replace('_90x90q30.jpg_.webp', '')
+      }
+      return url
+    }
+
     const extractSkuInfo = (elements: NodeListOf<Element>) => {
       elements.forEach((element) => {
         const imgSrc = element.getAttribute('src');
@@ -146,7 +153,7 @@ const tmallHandlers: PlatformHandler = {
           if (title && imgSrc) {
             rst.push({
               label: normalizeText(title),
-              url: completeUrlProtocol(imgSrc),
+              url: removeThumbnailSuffix(completeUrlProtocol(imgSrc)),
             });
           }
         }

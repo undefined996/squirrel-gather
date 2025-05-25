@@ -1,5 +1,5 @@
 import { completeUrlProtocol, normalizeText, removeDashAndAfter } from '~/utils/common';
-import { Sku, PlatformHandler, SettingsHandler, TaskType } from '../types'
+import { Sku, PlatformHandler, SettingsHandler, TaskType } from '../types/schemas'
 import { useCollectData } from './useCollectData';
 
 // 1688视图筛选器统一配置
@@ -59,7 +59,8 @@ const aliHandlers: PlatformHandler = {
 
 
         if (skuInfo.label && skuInfo.url) {
-          skuInfo.url = completeUrlProtocol(skuInfo.url);
+          const imageUrl = completeUrlProtocol(skuInfo.url);
+          skuInfo.url = imageUrl.replace('\.jpg_sum\.jpg', '.jpg').trim();
           rst.push(skuInfo);
         }
       });
@@ -143,7 +144,10 @@ const aliHandlers: PlatformHandler = {
     imgElements.forEach((element) => {
       const url = element.getAttribute('src');
       if (url) {
-        rst.push(url.startsWith('//') ? `${window.location.protocol}${url}` : url);
+        if (!/\.\d+x\d+/.test(url)) {
+          rst.push(completeUrlProtocol(url).split('?')[0]);
+        }
+
       }
     });
 

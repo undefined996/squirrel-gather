@@ -1,6 +1,21 @@
-import { SettingsHandler, Sku, TaskType, PlatformHandler } from "~/types";
+import { SettingsHandler, Sku, TaskType, PlatformHandler } from "~/types/schemas";
 import { completeUrlProtocol, delay, normalizeText, isInViewport } from "~/utils/common";
 import { useCollectData } from '~/composables/useCollectData'
+
+
+// 京东视图筛选器统一配置
+export const JD_SELECTORS = {
+  titleFilterLabel: '.sku-name-title',
+  titleFilterName: '.sku-name',
+  skuFilter: '#choose-attrs .dd a',
+  mainImagesFilter: "#spec-list .lh img",
+  mainVideoIconFilter: '.video-play-icon',
+  mainVideoEleFilter: '#video-player_html5_api',
+  detailImagesFilterByStyle: '#J-detail-content style',
+  detailImagesFilterByImg: '#J-detail-content img',
+  detailImagesFilterRootId: '#J-detail-content'
+};
+
 
 
 // 去除url尾缀.avif
@@ -25,8 +40,8 @@ const jdHandlers: PlatformHandler = {
   handleTitle: // 获取标题信息(统一转换为异步)
     async function handleTitle(): Promise<string> {
       // 查询 .sku-name-title 和 .sku-name
-      const titleElement1 = document.querySelector('.sku-name-title') as HTMLElement | null;
-      const titleElement2 = document.querySelector('.sku-name') as HTMLElement | null;
+      const titleElement1 = document.querySelector(JD_SELECTORS.titleFilterLabel) as HTMLElement | null;
+      const titleElement2 = document.querySelector(JD_SELECTORS.titleFilterName) as HTMLElement | null;
 
       // 如果 .sku-name-title 存在，返回它的文本内容；如果不存在，返回 .sku-name 的文本内容
       const title = titleElement1 ? normalizeText(titleElement1.textContent || '') :
@@ -41,14 +56,14 @@ const jdHandlers: PlatformHandler = {
 
     const rst: Sku[] = [];
 
-    const elements = document.querySelectorAll('#choose-attrs .dd a')
+    const elements = document.querySelectorAll(JD_SELECTORS.skuFilter)
     if (elements.length > 0) {
       elements.forEach(element => {
         const imgSrc = element.querySelector("img")?.getAttribute('src')
         const label = element?.textContent?.trim() || element.querySelector("i")?.textContent?.trim()
         // TODO:可能存在有标签没有图片的情况
         if (label) {
-          const rightSizeImgSrc = imgSrc ? imgSrc.replace(/\/s\d+x\d+_jfs\//, '/s800x800_jfs/') : ''
+          const rightSizeImgSrc = imgSrc ? formatMainImageUrl(imgSrc) : ''
           rst.push({
             label: normalizeText(label),
             url: completeUrlProtocol(removeAvifSuffix(rightSizeImgSrc)),
@@ -64,7 +79,7 @@ const jdHandlers: PlatformHandler = {
   // 获取主图(统一转换为异步)
   // TODO:京东点击SKU后主图会变化：当前只提取了默认selected sku对应的主图
   handleMainImages: async (): Promise<string[]> => {
-    const imgElements = document.querySelectorAll("#spec-list .lh img");
+    const imgElements = document.querySelectorAll(JD_SELECTORS.mainImagesFilter);
     return Array.from(imgElements)
       .map((element) => element.getAttribute('src'))
       .filter((url): url is string => url !== null)
@@ -78,15 +93,14 @@ const jdHandlers: PlatformHandler = {
 
   // 获取主图视频地址
   handleMainVideo: (): Promise<string> => {
-    const VIDEO_ICON_SELECTOR = '.video-play-icon';
-    const VIDEO_ELEMENT_SELECTOR = '#video-player_html5_api';
-    const TIMEOUT_DURATION = 3000; // 超时时间
-    const MOUSEOVER_DELAY = 100; // 触发 mouseover 事件的延迟时间（100ms）
+
+    const timeout = 3000; // 超时时间
+    const delayMs = 100; // 触发 mouseover 事件的延迟时间（100ms）
 
     return new Promise(async (resolve) => {
       try {
         // 查找 .video-play-icon 元素
-        const videoPlayIcon = document.querySelector(VIDEO_ICON_SELECTOR);
+        const videoPlayIcon = document.querySelector(JD_SELECTORS.mainVideoIconFilter);
         if (!videoPlayIcon) {
           resolve('');
           return;
@@ -124,14 +138,14 @@ const jdHandlers: PlatformHandler = {
         // 增加延迟触发 mouseover 事件
 
         triggerMouseOver(siblingElement); // 触发兄弟节点的 mouseover 事件
-        await delay(MOUSEOVER_DELAY) // 增加延迟操作
+        await delay(delayMs) // 增加延迟操作
         triggerMouseOver(parentElement); // 触发父节点的 mouseover 事件
 
         // 使用 MutationObserver 监听视频元素
         let observer: MutationObserver | null = null;
         const videoSrcPromise = new Promise<string>((resolve) => {
           observer = new MutationObserver(() => {
-            const videoElement = document.querySelector(VIDEO_ELEMENT_SELECTOR);
+            const videoElement = document.querySelector(JD_SELECTORS.mainVideoEleFilter);
             if (videoElement) {
               const videoSrc = videoElement.getAttribute('src');
               resolve(videoSrc || '');
@@ -143,7 +157,7 @@ const jdHandlers: PlatformHandler = {
           observer.observe(document.body, { childList: true, subtree: true });
 
           // 立即检查一次，避免遗漏
-          const videoElement = document.querySelector(VIDEO_ELEMENT_SELECTOR);
+          const videoElement = document.querySelector(JD_SELECTORS.mainVideoEleFilter);
           if (videoElement) {
             const videoSrc = videoElement.getAttribute('src');
             resolve(videoSrc || '');
@@ -156,7 +170,7 @@ const jdHandlers: PlatformHandler = {
           setTimeout(() => {
             resolve('');
             observer?.disconnect(); // 停止观察
-          }, TIMEOUT_DURATION);
+          }, timeout);
         });
 
         // 使用 Promise.race 竞争视频地址获取和超时
@@ -173,7 +187,7 @@ const jdHandlers: PlatformHandler = {
   handleDetailImages: async (): Promise<string[]> => {
     // 基于正则表达式提取图片地址
     const getImageSrcByRegex = () => {
-      const element = document.querySelector('#J-detail-content style');
+      const element = document.querySelector(JD_SELECTORS.detailImagesFilterByStyle);
       const cssContent = element?.textContent;
 
       if (cssContent) {
@@ -196,7 +210,7 @@ const jdHandlers: PlatformHandler = {
     const getImageSrcByDom = () => {
       const result: any = [];
       // 情况2：dom直接提取
-      const elements = document.querySelectorAll('#J-detail-content img');
+      const elements = document.querySelectorAll(JD_SELECTORS.detailImagesFilterByImg);
       elements.forEach(element => {
         const imageSrc = element.getAttribute('src');
         const lazyImageSrc = element.getAttribute('data-lazyload');
@@ -208,6 +222,12 @@ const jdHandlers: PlatformHandler = {
       });
       return result;
     };
+
+    const rootEle = document.querySelector(JD_SELECTORS.detailImagesFilterRootId)
+    if (rootEle) {
+      rootEle.scrollIntoView()
+      await delay(100);
+    }
 
     const regexHandleResult = getImageSrcByRegex();
     const domHandleResult = getImageSrcByDom();
@@ -221,7 +241,7 @@ const jdSettingsHandlers: SettingsHandler<any>[] = [
   { key: 'isSkus', handler: jdHandlers.handleSkus, resultKey: 'skus', defaultValue: [], taskType: TaskType.CONCURRENT },
   { key: 'isMainVideo', handler: jdHandlers.handleMainVideo, resultKey: 'mainVideoUrl', defaultValue: '', taskType: TaskType.SEQUENTIAL },
   { key: 'isMainImages', handler: jdHandlers.handleMainImages, resultKey: 'mainImages', defaultValue: [], taskType: TaskType.CONCURRENT },
-  { key: 'isDetailImages', handler: jdHandlers.handleDetailImages, resultKey: 'detailImages', defaultValue: [], taskType: TaskType.CONCURRENT },
+  { key: 'isDetailImages', handler: jdHandlers.handleDetailImages, resultKey: 'detailImages', defaultValue: [], taskType: TaskType.SEQUENTIAL },
 ];
 
 

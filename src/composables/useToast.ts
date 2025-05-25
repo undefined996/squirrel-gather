@@ -1,6 +1,6 @@
 import { toast } from 'vue-sonner';
 import { NotificationMessage } from '~/constants';
-import { ToastOptions, ToastType } from '~/types';
+import { ToastOptions, ToastType } from '~/types/schemas';
 
 
 /**

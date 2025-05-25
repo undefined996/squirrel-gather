@@ -1,40 +1,32 @@
-import { Hostname, NotificationMessage } from "~/constants";
-import { JsonValue, Result, Settings, ToastOptions, ToastType, Response } from "~/types";
+import { Hostname } from "~/constants";
+import { Result, PlainSettings, RequestData } from "~/types/schemas";
 import { getPageUrl } from "~/utils/common";
 import { sendMessage } from 'webext-bridge/content-script'
 import { useCollectAliData } from "./useCollectAliData";
 import { useCollectTmallData } from "./useCollectTmallData";
 import { useCollectJDData } from "./useCollectJDData";
 
-const useDownloadController = (isSubmit: Ref<boolean>,
-  settings: Settings,
-  showToast: (notificationMessageValue: NotificationMessage, type?: ToastType, options?: ToastOptions) => void) => {
+const useDownloadController = (
+  settings: PlainSettings, sourceId?: number) => {
 
 
   // content---->background推送下载打包消息
-  const sendToBackground = async (data: Result) => {
-    const response = await sendMessage<Response>(
-      'downloadResources',
-      data as JsonValue,
+  const sendToBackground = (data: Result) => {
+    const requestData: RequestData = {
+      data,
+      ...(sourceId !== undefined && { sourceId }), // ✅ 有则加，没有就不传
+    }
+    sendMessage(
+      'download-resources',
+      requestData,
       'background'
     )
-
-    await showToast(NotificationMessage.PACKAGING);
-
-    if (response && response.code === 200 && response.status === 'success') {
-      await showToast(NotificationMessage.DOWNLOAD_COMPLETED, 'success', { duration: 15000, closeButton: true })
-    } else {
-      await showToast(NotificationMessage.BACKGROUND_ERROR, 'error', { duration: 15000, closeButton: true })
-    }
   }
 
 
   // downloadSubmitHandle(将下载任务提交到后台)
   const downloadHandle = async () => {
     try {
-      isSubmit.value = true
-      // 解析消息提示
-      await showToast(NotificationMessage.STARTING)
 
       let result: Result = {}
       const pageUrl = getPageUrl()
@@ -61,14 +53,10 @@ const useDownloadController = (isSubmit: Ref<boolean>,
 
       console.log('result==============>', result)
 
-      await showToast(NotificationMessage.SUBMITTING)
       // 提交后台下载打包消息提示
       await sendToBackground(result)
     } catch (error) {
       console.log("页面解析出现异常:", error)
-      await showToast(NotificationMessage.CONTROLLER_ERROR, 'error', { duration: 15000, closeButton: true })
-    } finally {
-      isSubmit.value = false
     }
   }
 

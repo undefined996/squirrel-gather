@@ -4,19 +4,6 @@ export interface Sku {
   url: string | null
 }
 
-// 消息发送结构体定义
-export type JsonValue =
-  | string
-  | number
-  | boolean
-  | null
-  | JsonObject
-  | JsonArray
-  | { [key: string]: JsonValue }
-
-export type JsonObject = { [key: string]: JsonValue };
-export type JsonArray = JsonValue[];
-
 // 网页（content)解析结果
 export interface Result {
   title?: string
@@ -27,7 +14,6 @@ export interface Result {
   detailVideoUrl?: string
   isReadMe?: boolean
   url?: string,
-  [key: string]: JsonValue | undefined | Sku[]; // 添加索引签名
 }
 
 // 通知
@@ -58,8 +44,7 @@ export interface Settings {
   isMainImages: Ref<boolean>
   isSkus: Ref<boolean>
   isDetailImages: Ref<boolean>
-  isDetailVideo: Ref<boolean>,
-  [key: string]: Ref<boolean>; // 添加索引签名
+  isDetailVideo: Ref<boolean>
 }
 
 
@@ -69,6 +54,14 @@ export enum TaskType {
   CONCURRENT = "可并发执行",
   // 需顺序执行
   SEQUENTIAL = "需顺序执行"
+}
+
+// 任务状态
+export enum StatusType {
+  INIT = 'init',           // 初始状态（未开始）
+  PROCESSING = 'processing', // 正在处理
+  FINISHED = 'finished',   // 已完成
+  FAILED = 'failed'        // 处理失败
 }
 
 // 设置项处理函数
@@ -101,12 +94,58 @@ export interface PlatformHandler {
   handleDetailVideo?: () => Promise<string>;
 }
 
-// 响应结构体
-export interface Response extends JsonObject {
-  code: number;
-  message: string;
-  data: JsonValue;
-  source: 'background' | 'content' | 'popup' | 'sidepanel';
-  status: 'success' | 'failed' | 'unknown';
-  [key: string]: JsonValue; // 添加索引签名并确保符合 JsonValue 类型
+
+// ”纯“配置文件
+export type PlainSettings = {
+  [K in keyof Settings]: boolean
 }
+
+export interface AgentRequestParams {
+  url: string
+  settings: PlainSettings,
+  sourceContentTabId: number
+}
+
+
+export interface Notification {
+  code: number
+  message: string
+}
+
+
+export enum AgentStopStatus {
+  SUCCESS,
+  MISSING,
+  ERROR_AND_STOP
+}
+
+
+// 响应结构体
+export interface ResponseData {
+  status: number,
+  message: string
+  detailMessage?: string
+}
+
+
+// 请求结构体
+export interface RequestData {
+  data: Result,
+  sourceId?: number,
+}
+
+// 代理请求结构体
+export interface AgentRequestData {
+  url: string
+  settings: PlainSettings
+  sourceId?: number
+}
+
+export enum SimpleStatus {
+  SUCCESS,
+  FAILED
+}
+
+
+// 模式类型
+export type ModeType = 'visible' | 'hidden'

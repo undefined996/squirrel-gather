@@ -18,7 +18,8 @@
     "resolveJsonModule": true,
     "types": [
       "vite/client",
-      "chrome"
+      "chrome",
+      "webextension-polyfill"
     ],
     "strict": true,
     "noUnusedLocals": true,

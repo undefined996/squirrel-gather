@@ -3,11 +3,13 @@ import { createApp } from 'vue'
 import App from './views/App.vue'
 import { setupApp } from '~/logic/common-setup'
 import { Toaster } from 'vue-sonner';
+import '~/styles/contentStyle.css'
 
 
 
 // Firefox `browser.tabs.executeScript()` requires scripts return a primitive value
 (() => {
+
   // mount component to context window
   const container = document.createElement('div')
   container.id = __NAME__

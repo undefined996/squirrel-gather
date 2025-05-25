@@ -18,7 +18,10 @@ export enum NotificationMessage {
   PACKAGING = '资源提取成功正打包压缩',
   DOWNLOAD_COMPLETED = '下载成功请默认下载目录查验',
   ERROR = '任务执行失败请重试',
-  BACKGROUND_ERROR = '处理器出现异常请重试',
-  CONTROLLER_ERROR = '控制器出现异常请重试'
+  BACKGROUND_ERROR = '处理器出现异常',
+  CONTROLLER_ERROR = '控制器出现异常'
 }
 
+
+// 定义原生的消息通道
+export const NATIVE_STATE_UPDATE_CHANNEL = "state-update"

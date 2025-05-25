@@ -6,10 +6,21 @@ import { useSwitchGroups } from '~/composables/useSwitchGroups'
 import { useToast } from '~/composables/useToast'
 import useDownloadController from '~/composables/useDownloadController'
 import { useStaticClickOutside as useClickOutside } from '~/composables/useClickOutside'
-import { Settings } from '~/types'
+import { Settings, StatusType } from '~/types/schemas'
+import { sendMessage } from 'webext-bridge/content-script'
+import { getPageUrl, plainSettings } from '~/utils/common'
+import { NotificationMessage } from '~/constants'
+import browser from 'webextension-polyfill'
+import {
+  NativeMessageMap,
+  NativeMessageType
+} from '~/types/native-message-protocol'
 
-// 下载任务提交状态
-const isSubmit = ref(false)
+import { useWebExtensionStorage } from '~/composables/useWebExtensionStorage'
+import type { ModeType } from '~/types/schemas'
+
+// 任务状态
+const taskStatus = ref<StatusType>(StatusType.INIT)
 // 是否关闭悬浮按钮（包含设置面板）
 const isClose = ref(false)
 // 是否展示设置面板
@@ -51,28 +62,10 @@ const closeHandle = (event: MouseEvent) => {
 }
 
 // useMouseInElement监听鼠标是否移出元素外部
-const { isOutside } = useMouseInElement(floatingButtonRef)
+const { isOutside, stop: stopMouseTracker } =
+  useMouseInElement(floatingButtonRef)
 // 是否展开
 const isExpand = computed(() => isShowSettingsCard.value || !isOutside.value)
-
-// // 优化展开
-// const isExpand = ref(false)
-
-// // 监听 isShowSettingsCard 和 isOutside 的变化
-// watchEffect(() => {
-//   isExpand.value = isShowSettingsCard.value || !isOutside.value
-// })
-
-// 监听设置面板外部任何区域时关闭设置面板，设置按钮本身除外
-// onClickOutside(
-//   settingsCardRef,
-//   async (event) => {
-//     if (isShowSettingsCard.value) {
-//       await settingsShowHandle(event)
-//     }
-//   },
-//   { ignore: [settingsButtonRef, closeButtonRef] }
-// )
 
 // 设置按钮点击处理函数
 const settingsShowHandle = (event: MouseEvent) => {
@@ -82,28 +75,29 @@ const settingsShowHandle = (event: MouseEvent) => {
 
 // 可拖拽功能调用
 const { y, adaptiveStyles } = useDrag(floatingButtonRef)
+// 获取用户选择的模式
+const extractionMode = useWebExtensionStorage<ModeType>(
+  'extraction-mode',
+  'hidden'
+)
 
-// 提交下载任务等待background反馈结果并触发Toast
-const { downloadHandle } = useDownloadController(isSubmit, settings, showToast)
+const downloadHandle = async () => {
+  taskStatus.value = StatusType.PROCESSING
+  await showToast(NotificationMessage.STARTING)
 
-// 监听从后端传递的异常消息并触发Toast
-// onMessage('downloadResourcesFailed', ({}) => {
-//   showToast(NotificationMessage.ERROR, 'error', {
-//     duration: 15000,
-//     closeButton: true
-//   })
-// })
-
-// 监听设置面板外部任何区域时关闭设置面板，设置按钮、关闭按钮除外
-// onClickOutside(
-//   settingsCardRef,
-//   async (event) => {
-//     if (isShowSettingsCard.value) {
-//       await settingsShowHandle(event)
-//     }
-//   },
-//   { ignore: [settingsButtonRef, closeButtonRef] }
-// )
+  if (extractionMode.value === 'hidden') {
+    console.log('用户当前选择的是hidden模式')
+    const data = {
+      url: getPageUrl(),
+      settings: plainSettings(settings)
+    }
+    sendMessage('start-agent', data, 'background')
+  } else {
+    console.log('用户当前选择的是visible模式')
+    const { downloadHandle } = useDownloadController(plainSettings(settings))
+    await downloadHandle()
+  }
+}
 
 useClickOutside(
   settingsCardRef,
@@ -115,6 +109,65 @@ useClickOutside(
   isShowSettingsCard,
   [settingsButtonRef, closeButtonRef]
 )
+
+const nativeMessageHandle = (
+  message: unknown,
+  sender: browser.Runtime.MessageSender,
+  sendResponse: (response?: any) => void
+) => {
+  // First, verify the message has the expected structure
+  if (typeof message === 'object' && message !== null && 'type' in message) {
+    const typedMessage = message as {
+      type: keyof NativeMessageMap
+      data: any
+    }
+
+    if (typedMessage.type === NativeMessageType.JOB_STATE_NOTIFY) {
+      const data = typedMessage.data
+      const handleNotification = async () => {
+        switch (data.status) {
+          case 1001:
+            await showToast(NotificationMessage.SUBMITTING)
+            break
+          case 1002:
+            await showToast(NotificationMessage.PACKAGING)
+            break
+          case 1003:
+            taskStatus.value = StatusType.FINISHED
+            await showToast(NotificationMessage.DOWNLOAD_COMPLETED, 'success', {
+              duration: 15000,
+              closeButton: true
+            })
+            break
+          case 1004:
+            taskStatus.value = StatusType.FAILED
+            await showToast(NotificationMessage.CONTROLLER_ERROR, 'error', {
+              duration: 15000,
+              closeButton: true
+            })
+            break
+        }
+        sendResponse({ status: 'ok' })
+      }
+
+      handleNotification()
+      return true
+    }
+  }
+
+  // Return undefined for messages we don't handle
+  return undefined
+}
+
+browser.runtime.onMessage.addListener(nativeMessageHandle)
+
+onUnmounted(() => {
+  browser.runtime.onMessage.removeListener(nativeMessageHandle)
+  stopMouseTracker()
+})
+
+console.log('Referrer:', document.referrer)
+console.log('Navigator.webdriver:', navigator.webdriver)
 </script>
 
 <template>
@@ -160,7 +213,7 @@ useClickOutside(
       <DownloadButton
         :is-expand="isExpand"
         :is-hidden-tooltip="!isShowSettingsCard"
-        :is-submit="isSubmit"
+        :task-status="taskStatus"
         @update:download-submit="downloadHandle"
       />
 

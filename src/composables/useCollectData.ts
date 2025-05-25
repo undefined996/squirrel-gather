@@ -1,5 +1,5 @@
 import pLimit from "p-limit";
-import { PlatformHandler, Result, Settings, SettingsHandler, TaskType } from "~/types";
+import { PlainSettings, PlatformHandler, Result, SettingsHandler, TaskType } from "~/types/schemas";
 
 export function useCollectData(
   handler: PlatformHandler,
@@ -9,7 +9,7 @@ export function useCollectData(
   // 顺序任务、并发任务分发及执行
   const executeTasks = async (
     settingsHandlers: SettingsHandler<any>[],
-    settings: Settings,
+    settings: PlainSettings,
     result: Result,
     limit: (fn: () => Promise<void>) => Promise<void>
   ): Promise<void> => {
@@ -19,7 +19,7 @@ export function useCollectData(
 
     // 动态添加任务
     settingsHandlers.forEach(({ key, handler, resultKey, defaultValue, taskType }) => {
-      if (settings[key].value) {
+      if (settings[key]) {
         const task = async () => {
           const value = await handler();
           result[resultKey] = value ?? defaultValue;
@@ -60,7 +60,7 @@ export function useCollectData(
 
 
   // 数据汇总
-  const processData = async (settings: Settings): Promise<Result> => {
+  const processData = async (settings: PlainSettings): Promise<Result> => {
     const result: Result = { url }; // 初始化 result 并添加 url
     const n = computeLimit() // 计算并发数
     const limit = pLimit(n); // 设置最大并发数
@@ -72,7 +72,7 @@ export function useCollectData(
     await executeTasks(settingsHandlers, settings, result, limit);
 
     // 处理 isReadMe
-    result.isReadMe = settings.isReadMe.value;
+    result.isReadMe = settings.isReadMe;
 
     return result;
   };

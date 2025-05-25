@@ -32,7 +32,7 @@ const tooltipClass = computed(() => {
     'bg-gray-500',
     'px-4',
     'py-1',
-    'rounded-md',
+    'rounded-full',
     'text-white',
     'text-xs',
     'whitespace-nowrap',

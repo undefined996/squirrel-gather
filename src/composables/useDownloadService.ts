@@ -1,6 +1,6 @@
 import JSZip from 'jszip';
 import { formatNumber } from '~/utils/common'
-import { Result } from '~/types';
+import { Result } from '~/types/schemas';
 import pLimit from 'p-limit';
 
 const useDownloadService = () => {
