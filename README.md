@@ -11,11 +11,11 @@ A browser plugin that automatically downloads **main images**, **main videos**, 
 <img width="480" src="./.github/images/hover-close-btn.png"><br/><br/>
 <h3>Settings button hover</h3><br/>
 <img width="480" src="./.github/images/hover-setting-btn.png"><br/><br/>
-<h3>Click Settings button</h3><br/>
+<h3>Click settings button</h3><br/>
 <img width="480" src="./.github/images/click-setting-btn.png"><br/><br/>
-<h3>Click Popup</h3><br/>
+<h3>Click popup</h3><br/>
 <img width="480" src="./.github/images/click-popup.png"><br/><br/>
-<h3>Page inside Sonner</h3><br/>
+<h3>Page inside sonner</h3><br/>
 <img width="480" src="./.github/images/sonner.png"><br/><br/>
 <h3>System notifications</h3><br/>
 <img width="480" src="./.github/images/notifications.png"><br/><br/>
