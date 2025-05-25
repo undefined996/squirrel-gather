@@ -5,20 +5,20 @@ A browser plugin that automatically downloads **main images**, **main videos**, 
 ---
 
 <p align="center">
-<sub>Download button hover</sub><br/>
-<img width="480" src="./.github/images/hover-download-btn.png"><br/>
-<sub>Close button hover</sub><br/>
-<img width="480" src="./.github/images/hover-close-btn.png"><br/>
-<sub>Settings button hover</sub><br/>
-<img width="480" src="./.github/images/hover-setting-btn.png"><br/>
-<sub>Click Settings button</sub><br/>
-<img width="480" src="./.github/images/click-setting-btn.png"><br/>
-<sub>Click Popup</sub><br/>
-<img width="480" src="./.github/images/click-popup.png"><br/>
-<sub>Page inside Sonner</sub><br/>
-<img width="480" src="./.github/images/sonner.png"><br/>
-<sub>System notifications</sub><br/>
-<img width="480" src="./.github/images/notifications.png"><br/>
+<h3>Download button hover</h3><br/>
+<img width="480" src="./.github/images/hover-download-btn.png"><br/><br/>
+<h3>Close button hover</h3><br/>
+<img width="480" src="./.github/images/hover-close-btn.png"><br/><br/>
+<h3>Settings button hover</h3><br/>
+<img width="480" src="./.github/images/hover-setting-btn.png"><br/><br/>
+<h3>Click Settings button</h3><br/>
+<img width="480" src="./.github/images/click-setting-btn.png"><br/><br/>
+<h3>Click Popup</h3><br/>
+<img width="480" src="./.github/images/click-popup.png"><br/><br/>
+<h3>Page inside Sonner</h3><br/>
+<img width="480" src="./.github/images/sonner.png"><br/><br/>
+<h3>System notifications</h3><br/>
+<img width="480" src="./.github/images/notifications.png"><br/><br/>
 </p>
 
 ---
