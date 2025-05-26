@@ -5,19 +5,19 @@ A browser plugin that automatically downloads **main images**, **main videos**, 
 ---
 
 <p align="center">
-<h3>Download button hover</h3><br/>
+<strong>Download button hover</strong><br/>
 <img width="480" src="./.github/images/hover-download-btn.png"><br/><br/>
-<h3>Close button hover</h3><br/>
+<strong>Close button hover</strong><br/>
 <img width="480" src="./.github/images/hover-close-btn.png"><br/><br/>
-<h3>Settings button hover</h3><br/>
+<strong>Settings button hover</strong><br/>
 <img width="480" src="./.github/images/hover-setting-btn.png"><br/><br/>
-<h3>Click settings button</h3><br/>
+<strong>Click settings button</strong><br/>
 <img width="480" src="./.github/images/click-setting-btn.png"><br/><br/>
-<h3>Click popup</h3><br/>
+<strong>Click popup</strong><br/>
 <img width="480" src="./.github/images/click-popup.png"><br/><br/>
-<h3>Page inside sonner</h3><br/>
+<strong>Page inside sonner</strong><br/>
 <img width="480" src="./.github/images/sonner.png"><br/><br/>
-<h3>System notifications</h3><br/>
+<strong>System notifications</strong><br/>
 <img width="480" src="./.github/images/notifications.png"><br/><br/>
 </p>
 
