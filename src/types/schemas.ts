@@ -100,25 +100,6 @@ export type PlainSettings = {
   [K in keyof Settings]: boolean
 }
 
-export interface AgentRequestParams {
-  url: string
-  settings: PlainSettings,
-  sourceContentTabId: number
-}
-
-
-export interface Notification {
-  code: number
-  message: string
-}
-
-
-export enum AgentStopStatus {
-  SUCCESS,
-  MISSING,
-  ERROR_AND_STOP
-}
-
 
 // 响应结构体
 export interface ResponseData {
