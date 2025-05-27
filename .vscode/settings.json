@@ -43,4 +43,5 @@
   "files.associations": {
     "*.css": "postcss"
   },
+  "vitest.disableWorkspaceWarning": true,
 }

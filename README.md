@@ -26,7 +26,7 @@ A browser plugin that automatically downloads **main images**, **main videos**, 
 ## 🚀 Features
 
 - 🔄 Hot Reload Support
-- 🌐 Compatible with Chrome / Edge
+- 🌐 Compatible with Chrome / Edge / Firefox
 - 🕵️ Regular Mode & Incognito Mode
 - 🔔 System Notifications
 - 🎛️ Draggable Custom UI
