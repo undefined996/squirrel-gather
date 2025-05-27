@@ -1,6 +1,6 @@
 # SquirrelGather
 
-A browser plugin that automatically downloads **main images**, **main videos**, **SKU images and names**, **product titles**, **detail page images**, and **product demo videos** from **1688**, **Tmall**, **Taobao**, and **JD.com**.
+A browser plugin that automatically downloads **main images**, **main videos**, **SKU images and names**, **product titles**, **detail page images**, and **product demo videos** from **1688**, **Tmall**, **Taobao**, and **JD.com**,with all resources packaged in ZIP format
 
 ---
 
@@ -30,6 +30,7 @@ A browser plugin that automatically downloads **main images**, **main videos**, 
 - 🕵️ Regular Mode & Incognito Mode
 - 🔔 System Notifications
 - 🎛️ Draggable Custom UI
+- ⚡ Concurrent downloads
 
 ---
 
