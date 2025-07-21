@@ -104,7 +104,7 @@ const aliHandlers: PlatformHandler = {
     elements.forEach((element) => {
       const url = element.getAttribute('src');
       if (url) {
-        const processedUrl = url.endsWith('.jpg_b.jpg') ? url.replace(/\.jpg_b\.jpg$/, '.jpg_.webp') : url;
+        const processedUrl = url.endsWith('.jpg_b.jpg') ? url.replace(/\.jpg_b\.jpg$/, '.jpg') : url;
         rst.push(completeUrlProtocol(processedUrl));
       }
     });
